@@ -26,14 +26,18 @@
 - `src/build_multilabel_dataset.py`  
   画像CSV + 動画CSV を統合し、最終CSVと split CSV を作成
 - `src/train_multilabel_classifier.py`  
-  PyTorch（ResNet系）で multi-label 学習・評価を実行
+  PyTorch（ResNet/EfficientNet）で multi-label 学習・評価を実行
+- `src/predict_multilabel_classifier.py`  
+  学習済みチェックポイントで画像推論し、予測CSVを出力
 - `metadata/rg_video_list.txt`  
-  指定動画リスト
+  本研究で使った動画リスト（著者環境の絶対パス）
+- `metadata/video_list_example.txt`  
+  他ユーザー向けの動画リスト雛形
 
 ## セットアップ
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 Colab の場合（リポジトリを clone した場所で実行）:
@@ -64,9 +68,11 @@ snapshot_download(
 
 ### 動画リストを指定して実行
 
+事前に `metadata/video_list_example.txt` を複製し、自分の環境の絶対パスで `metadata/video_list.txt` を作成してください。
+
 ```bash
 python src/annotate_videos_with_openai.py \
-  --video-list-file metadata/rg_video_list.txt \
+  --video-list-file metadata/video_list.txt \
   --image-dir data/raw \
   --output-root "./artifacts/ai_annotated_frames" \
   --metadata-csv "./artifacts/metadata/openai_video_annotations.csv" \
@@ -123,7 +129,7 @@ python src/train_multilabel_classifier.py \
 
 評価結果は JSON として保存され、再利用できます。
 
-### バックボーン比較（ResNet）
+### バックボーン比較（ResNet / EfficientNet）
 
 `--arch` で切り替え可能:
 
@@ -132,6 +138,7 @@ python src/train_multilabel_classifier.py \
 - `resnet50`
 - `resnet101`
 - `resnet152`
+- `efficientnet_v2_s`
 
 例:
 
@@ -147,6 +154,27 @@ python src/train_multilabel_classifier.py \
   --epochs 12 \
   --batch-size 32 \
   --threshold 0.5
+```
+
+## 4. 推論（学習済みモデルを使う）
+
+```bash
+python src/predict_multilabel_classifier.py \
+  --model-path "./artifacts/models/multilabel_resnet101_best.pt" \
+  --input-path "./data/infer_images" \
+  --recursive \
+  --output-csv "./artifacts/predictions/resnet101_predictions.csv"
+```
+
+しきい値を metrics JSON から読み込む場合:
+
+```bash
+python src/predict_multilabel_classifier.py \
+  --model-path "./artifacts/models/multilabel_effnetv2s_2stage_tunedthr.pt" \
+  --input-path "./data/infer_images" \
+  --recursive \
+  --metrics-json "./artifacts/models/multilabel_effnetv2s_2stage_tunedthr_metrics.json" \
+  --output-csv "./artifacts/predictions/effnet_predictions.csv"
 ```
 
 ## 直近の実行結果（2026-02-12）
@@ -194,3 +222,8 @@ python src/train_multilabel_classifier.py \
 
 - GitHubに上げる: コード、設定、CSVメタデータ（必要な範囲）
 - GitHubに上げない: 生動画、生画像、APIキー、巨大中間ファイル
+
+## ライセンス
+
+- コード: `MIT`（`LICENSE` を参照）
+- データセット: 元データ（自前動画・外部データセット）の利用規約に従ってください

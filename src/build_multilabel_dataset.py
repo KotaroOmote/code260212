@@ -57,19 +57,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--image-csv",
         type=str,
-        default="/content/drive/MyDrive/RG/metadata/openai_image_annotations.csv",
+        default="./artifacts/metadata/openai_image_annotations.csv",
         help="Path to image annotation CSV.",
     )
     parser.add_argument(
         "--video-csv",
         type=str,
-        default="/content/drive/MyDrive/RG/metadata/openai_video_annotations.csv",
+        default="./artifacts/metadata/openai_video_annotations.csv",
         help="Path to video annotation CSV.",
     )
     parser.add_argument(
         "--output-dir",
         type=str,
-        default="/content/drive/MyDrive/RG/metadata",
+        default="./artifacts/metadata",
         help="Output directory for final CSV files.",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")

@@ -44,37 +44,37 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--train-csv",
         type=str,
-        default="/content/drive/MyDrive/RG/metadata/train_known.csv",
+        default="./artifacts/metadata/train_known.csv",
         help="Path to train split CSV.",
     )
     parser.add_argument(
         "--val-csv",
         type=str,
-        default="/content/drive/MyDrive/RG/metadata/val_known.csv",
+        default="./artifacts/metadata/val_known.csv",
         help="Path to validation split CSV.",
     )
     parser.add_argument(
         "--test-csv",
         type=str,
-        default="/content/drive/MyDrive/RG/metadata/test_known.csv",
+        default="./artifacts/metadata/test_known.csv",
         help="Path to test split CSV.",
     )
     parser.add_argument(
         "--model-out",
         type=str,
-        default="/content/drive/MyDrive/RG/models/multilabel_resnet18_best.pt",
+        default="./artifacts/models/multilabel_resnet18_best.pt",
         help="Output path for best model checkpoint.",
     )
     parser.add_argument(
         "--metrics-out",
         type=str,
-        default="/content/drive/MyDrive/RG/models/multilabel_test_metrics.json",
+        default="./artifacts/models/multilabel_test_metrics.json",
         help="Output path for final test metrics (JSON).",
     )
     parser.add_argument(
         "--history-out",
         type=str,
-        default="/content/drive/MyDrive/RG/models/multilabel_train_history.csv",
+        default="./artifacts/models/multilabel_train_history.csv",
         help="Output path for train/val history CSV.",
     )
     parser.add_argument("--epochs", type=int, default=12, help="Number of training epochs.")
@@ -90,7 +90,14 @@ def parse_args() -> argparse.Namespace:
         "--arch",
         type=str,
         default="resnet18",
-        choices=["resnet18", "resnet34", "resnet50", "resnet101", "resnet152"],
+        choices=[
+            "resnet18",
+            "resnet34",
+            "resnet50",
+            "resnet101",
+            "resnet152",
+            "efficientnet_v2_s",
+        ],
         help="Backbone architecture.",
     )
     parser.add_argument(
@@ -189,6 +196,11 @@ def build_model(arch: str, num_classes: int, pretrained: bool) -> nn.Module:
     elif arch == "resnet152":
         weights = models.ResNet152_Weights.IMAGENET1K_V2 if pretrained else None
         model = models.resnet152(weights=weights)
+    elif arch == "efficientnet_v2_s":
+        weights = models.EfficientNet_V2_S_Weights.IMAGENET1K_V1 if pretrained else None
+        model = models.efficientnet_v2_s(weights=weights)
+        model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, num_classes)
+        return model
     else:  # pragma: no cover
         raise ValueError(f"Unsupported architecture: {arch}")
     model.fc = nn.Linear(model.fc.in_features, num_classes)
@@ -381,16 +393,16 @@ def main() -> None:
         if val_micro > best_val_micro:
             best_val_micro = val_micro
             torch.save(
-            {
-                "model_state_dict": model.state_dict(),
-                "class_names": CLASS_NAMES,
-                "threshold": args.threshold,
-                "img_size": args.img_size,
-                "seed": args.seed,
-                "arch": args.arch,
-            },
-            model_out,
-        )
+                {
+                    "model_state_dict": model.state_dict(),
+                    "class_names": CLASS_NAMES,
+                    "threshold": args.threshold,
+                    "img_size": args.img_size,
+                    "seed": args.seed,
+                    "arch": args.arch,
+                },
+                model_out,
+            )
             print(f"  -> saved best: {model_out}")
 
     history_df = pd.DataFrame(history_rows)

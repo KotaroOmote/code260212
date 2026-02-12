@@ -1,0 +1,5 @@
+# One absolute path per line.
+# Replace these with your own video files before running annotation.
+
+/path/to/videos/cam01_0001.MOV
+/path/to/videos/cam01_0002.MOV

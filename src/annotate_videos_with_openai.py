@@ -103,7 +103,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--input-dir",
         type=str,
-        default="/content/drive/MyDrive/RG/input_images",
+        default="./data/input_videos",
         help="Directory containing input videos (recursive scan).",
     )
     parser.add_argument(
@@ -115,7 +115,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--image-dir",
         type=str,
-        default="/content/drive/MyDrive/code260212/data/raw",
+        default="./data/raw",
         help="Directory containing input images (recursive scan).",
     )
     parser.add_argument(
@@ -127,13 +127,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-root",
         type=str,
-        default="/content/drive/MyDrive/RG/ai_annotated_frames",
+        default="./artifacts/ai_annotated_frames",
         help="Root output folder. Class folders and _frames are created here.",
     )
     parser.add_argument(
         "--metadata-csv",
         type=str,
-        default="/content/drive/MyDrive/RG/metadata/openai_video_annotations.csv",
+        default="./artifacts/metadata/openai_video_annotations.csv",
         help="CSV path for annotation logs.",
     )
     parser.add_argument("--model", type=str, default="gpt-5.2", help="OpenAI model name.")
