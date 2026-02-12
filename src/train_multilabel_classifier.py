@@ -87,6 +87,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "cuda"], help="Device.")
     parser.add_argument(
+        "--arch",
+        type=str,
+        default="resnet18",
+        choices=["resnet18", "resnet34", "resnet50", "resnet101", "resnet152"],
+        help="Backbone architecture.",
+    )
+    parser.add_argument(
         "--no-pretrained",
         action="store_true",
         help="Do not use ImageNet pretrained weights.",
@@ -166,12 +173,24 @@ class MultiLabelCsvDataset(Dataset):
         return image, target
 
 
-def build_model(num_classes: int, pretrained: bool) -> nn.Module:
-    if pretrained:
-        weights = models.ResNet18_Weights.IMAGENET1K_V1
+def build_model(arch: str, num_classes: int, pretrained: bool) -> nn.Module:
+    if arch == "resnet18":
+        weights = models.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
         model = models.resnet18(weights=weights)
-    else:
-        model = models.resnet18(weights=None)
+    elif arch == "resnet34":
+        weights = models.ResNet34_Weights.IMAGENET1K_V1 if pretrained else None
+        model = models.resnet34(weights=weights)
+    elif arch == "resnet50":
+        weights = models.ResNet50_Weights.IMAGENET1K_V2 if pretrained else None
+        model = models.resnet50(weights=weights)
+    elif arch == "resnet101":
+        weights = models.ResNet101_Weights.IMAGENET1K_V2 if pretrained else None
+        model = models.resnet101(weights=weights)
+    elif arch == "resnet152":
+        weights = models.ResNet152_Weights.IMAGENET1K_V2 if pretrained else None
+        model = models.resnet152(weights=weights)
+    else:  # pragma: no cover
+        raise ValueError(f"Unsupported architecture: {arch}")
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     return model
 
@@ -292,7 +311,11 @@ def main() -> None:
         pin_memory=(device.type == "cuda"),
     )
 
-    model = build_model(num_classes=len(CLASS_NAMES), pretrained=(not args.no_pretrained))
+    model = build_model(
+        arch=args.arch,
+        num_classes=len(CLASS_NAMES),
+        pretrained=(not args.no_pretrained),
+    )
     model = model.to(device)
 
     train_labels = train_df[label_columns()].values.astype(np.float32)
@@ -358,15 +381,16 @@ def main() -> None:
         if val_micro > best_val_micro:
             best_val_micro = val_micro
             torch.save(
-                {
-                    "model_state_dict": model.state_dict(),
-                    "class_names": CLASS_NAMES,
-                    "threshold": args.threshold,
-                    "img_size": args.img_size,
-                    "seed": args.seed,
-                },
-                model_out,
-            )
+            {
+                "model_state_dict": model.state_dict(),
+                "class_names": CLASS_NAMES,
+                "threshold": args.threshold,
+                "img_size": args.img_size,
+                "seed": args.seed,
+                "arch": args.arch,
+            },
+            model_out,
+        )
             print(f"  -> saved best: {model_out}")
 
     history_df = pd.DataFrame(history_rows)
@@ -393,6 +417,7 @@ def main() -> None:
         "num_test": int(len(test_df)),
         "class_names": CLASS_NAMES,
         "threshold": float(args.threshold),
+        "arch": args.arch,
         "best_val_micro_f1": float(best_val_micro),
         "test": {
             "loss": float(test_loss),

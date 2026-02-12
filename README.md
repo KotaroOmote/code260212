@@ -100,12 +100,39 @@ python src/train_multilabel_classifier.py \
   --model-out "/content/drive/MyDrive/RG/models/multilabel_resnet18_best.pt" \
   --metrics-out "/content/drive/MyDrive/RG/models/multilabel_test_metrics.json" \
   --history-out "/content/drive/MyDrive/RG/models/multilabel_train_history.csv" \
+  --arch "resnet18" \
   --epochs 12 \
   --batch-size 32 \
   --threshold 0.5
 ```
 
 評価結果は JSON として保存され、再利用できます。
+
+### バックボーン比較（ResNet）
+
+`--arch` で切り替え可能:
+
+- `resnet18`
+- `resnet34`
+- `resnet50`
+- `resnet101`
+- `resnet152`
+
+例:
+
+```bash
+python src/train_multilabel_classifier.py \
+  --train-csv "/content/drive/MyDrive/RG/metadata/train_known.csv" \
+  --val-csv "/content/drive/MyDrive/RG/metadata/val_known.csv" \
+  --test-csv "/content/drive/MyDrive/RG/metadata/test_known.csv" \
+  --model-out "/content/drive/MyDrive/RG/models/multilabel_resnet50_best.pt" \
+  --metrics-out "/content/drive/MyDrive/RG/models/multilabel_resnet50_metrics.json" \
+  --history-out "/content/drive/MyDrive/RG/models/multilabel_resnet50_history.csv" \
+  --arch "resnet50" \
+  --epochs 12 \
+  --batch-size 32 \
+  --threshold 0.5
+```
 
 ## 直近の実行結果（2026-02-12）
 
